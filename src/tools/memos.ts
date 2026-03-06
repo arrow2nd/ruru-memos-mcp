@@ -36,6 +36,58 @@ export function registerMemoTools(
 	);
 
 	server.registerTool(
+		"search_memos",
+		{
+			description: "キーワードやタグでメモを検索する",
+			inputSchema: {
+				query: z
+					.string()
+					.optional()
+					.describe("検索キーワード（メモ本文から検索）"),
+				tag: z.string().optional().describe("タグで絞り込み（例: diary）"),
+				pageSize: z.number().optional().describe("取得件数（デフォルト: 10）"),
+			},
+		},
+		async (args) => {
+			const filters: string[] = [];
+			if (args.query) {
+				filters.push(`content.contains("${args.query}")`);
+			}
+			if (args.tag) {
+				filters.push(`"${args.tag}" in tags`);
+			}
+
+			const filter = filters.length > 0 ? filters.join(" && ") : undefined;
+			const result = await client.listMemos(args.pageSize, undefined, filter);
+
+			if (result.memos.length === 0) {
+				return {
+					content: [
+						{
+							type: "text" as const,
+							text: "メモが見つかりませんでした",
+						},
+					],
+				};
+			}
+
+			const formatted = {
+				...result,
+				memos: result.memos.map(({ name, ...rest }) => ({ name, ...rest })),
+			};
+
+			return {
+				content: [
+					{
+						type: "text" as const,
+						text: JSON.stringify(formatted, null, 2),
+					},
+				],
+			};
+		},
+	);
+
+	server.registerTool(
 		"list_memos",
 		{
 			description:
