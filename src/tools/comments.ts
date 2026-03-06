@@ -1,5 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { formatComment, formatCommentList } from "../format.ts";
 import type { MemosClient } from "../memos-client.ts";
 
 const BY_RURU_TAG = "\n\n#by_Ruru";
@@ -57,7 +58,7 @@ export function registerCommentTools(
 					content: [
 						{
 							type: "text" as const,
-							text: JSON.stringify(comment, null, 2),
+							text: formatComment(comment),
 						},
 					],
 				};
@@ -122,7 +123,7 @@ export function registerCommentTools(
 					content: [
 						{
 							type: "text" as const,
-							text: JSON.stringify(comments, null, 2),
+							text: formatCommentList(comments),
 						},
 					],
 				};

@@ -1,5 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { formatMemo, formatMemoList } from "../format.ts";
 import type { MemosClient } from "../memos-client.ts";
 
 const BY_RURU_TAG = "\n\n#by_Ruru";
@@ -28,7 +29,7 @@ export function registerMemoTools(
 				content: [
 					{
 						type: "text" as const,
-						text: JSON.stringify(memo, null, 2),
+						text: formatMemo(memo),
 					},
 				],
 			};
@@ -71,16 +72,11 @@ export function registerMemoTools(
 				};
 			}
 
-			const formatted = {
-				...result,
-				memos: result.memos.map(({ name, ...rest }) => ({ name, ...rest })),
-			};
-
 			return {
 				content: [
 					{
 						type: "text" as const,
-						text: JSON.stringify(formatted, null, 2),
+						text: formatMemoList(result),
 					},
 				],
 			};
@@ -118,17 +114,11 @@ export function registerMemoTools(
 				};
 			}
 
-			// name を先頭に配置して AI が参照しやすくする
-			const formatted = {
-				...result,
-				memos: result.memos.map(({ name, ...rest }) => ({ name, ...rest })),
-			};
-
 			return {
 				content: [
 					{
 						type: "text" as const,
-						text: JSON.stringify(formatted, null, 2),
+						text: formatMemoList(result),
 					},
 				],
 			};
