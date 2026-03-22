@@ -1,56 +1,64 @@
 import type { Comment, ListMemosResponse, Memo } from "./memos-client.ts";
 
+function indentBlock(text: string, indent: string): string {
+	return text
+		.split("\n")
+		.map((line) => `${indent}${line}`)
+		.join("\n");
+}
+
+/** フォーマット済み文字列をYAMLリストアイテムとして整形する */
+function asListItem(formatted: string, indent: string): string {
+	const [first, ...rest] = formatted.split("\n");
+	const subsequent = rest.map((line) => `${indent}  ${line}`).join("\n");
+	return subsequent
+		? `${indent}- ${first}\n${subsequent}`
+		: `${indent}- ${first}`;
+}
+
 export function formatMemo(memo: Memo): string {
-	const tags = memo.tags.length > 0 ? memo.tags.map((t) => `#${t}`).join(", ") : "なし";
+	const tags = memo.tags.join(", ");
 
-	const lines = [
-		`## ${memo.name}`,
-		"",
-		`- **作成日時**: ${memo.createTime}`,
-		`- **公開範囲**: ${memo.visibility}`,
-		`- **タグ**: ${tags}`,
-		"",
-		"### 本文",
-		"",
-		memo.content,
-	];
-
-	return lines.join("\n");
+	return [
+		`name: ${memo.name}`,
+		`createTime: ${memo.createTime}`,
+		`visibility: ${memo.visibility}`,
+		`tags: [${tags}]`,
+		"content: |",
+		indentBlock(memo.content, "  "),
+	].join("\n");
 }
 
 export function formatMemoList(result: ListMemosResponse): string {
-	const lines = [`# メモ一覧（${result.memos.length}件）`];
-
-	for (const memo of result.memos) {
-		lines.push("", "---", "", formatMemo(memo));
-	}
+	const lines = [`count: ${result.memos.length}`];
 
 	if (result.nextPageToken) {
-		lines.push("", `次のページトークン: \`${result.nextPageToken}\``);
+		lines.push(`nextPageToken: ${result.nextPageToken}`);
+	}
+
+	lines.push("memos:");
+
+	for (const memo of result.memos) {
+		lines.push(asListItem(formatMemo(memo), "  "));
 	}
 
 	return lines.join("\n");
 }
 
 export function formatComment(comment: Comment): string {
-	const lines = [
-		`## ${comment.name}`,
-		"",
-		`- **作成日時**: ${comment.createTime}`,
-		"",
-		"### 本文",
-		"",
-		comment.content,
-	];
-
-	return lines.join("\n");
+	return [
+		`name: ${comment.name}`,
+		`createTime: ${comment.createTime}`,
+		"content: |",
+		indentBlock(comment.content, "  "),
+	].join("\n");
 }
 
 export function formatCommentList(comments: Comment[]): string {
-	const lines = [`# コメント一覧（${comments.length}件）`];
+	const lines = [`count: ${comments.length}`, "comments:"];
 
 	for (const comment of comments) {
-		lines.push("", "---", "", formatComment(comment));
+		lines.push(asListItem(formatComment(comment), "  "));
 	}
 
 	return lines.join("\n");

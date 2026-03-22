@@ -1,6 +1,6 @@
 {
 	"name": "ruru-memos-mcp",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "MCP server for Memos — create, read, and comment on memos",
 	"type": "module",
 	"bin": {
